@@ -32,6 +32,7 @@ namespace HangulFixer
         private void btFindDir_Click(object sender, EventArgs e)
         {
             var fbd = new FolderBrowserDialog();
+            listFile.Items.Clear();
             var result = fbd.ShowDialog();
             if(result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
             {
@@ -92,10 +93,36 @@ namespace HangulFixer
 
         private void btDo_Click(object sender, EventArgs e)
         {
+            int count = 0;
+            if (listFile.Items.Count == 0) return;
             foreach (ListViewItem item in listFile.Items)
+                count += item.Checked ? 1 : 0;
+
+            if(count == 0)
             {
-                FileInfo file = new FileInfo(item.Text);
-                file.MoveTo(Convert(item.Text));
+                var result = MessageBox.Show("아무런 파일도 선택되지 않았습니다. 모든 파일에 대해 교정 작업을 하시겠습니까?", "HangulFixer", MessageBoxButtons.YesNo);
+                if(result == DialogResult.Yes)
+                {
+                    foreach (ListViewItem item in listFile.Items)
+                        item.Checked = true;
+                }
+                else
+                    return;
+            }
+            try
+            {
+                foreach (ListViewItem item in listFile.Items)
+                {
+                    if (item.Checked == true)
+                    {
+                        FileInfo file = new FileInfo(item.Text);
+                        file.MoveTo(Convert(item.Text));
+                    }
+                }
+                MessageBox.Show("작업이 완료되었습니다.");
+            }catch (Exception ex)
+            {
+                MessageBox.Show("오류 발생 : " + ex.StackTrace);
             }
         }
 
